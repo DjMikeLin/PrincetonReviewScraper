@@ -59,3 +59,10 @@ typings/
 
 # next.js build output
 .next
+
+package-lock.json
+readFile.js
+scrape.js
+scrape2.js
+scrape3.js
+scrape4.js
