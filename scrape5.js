@@ -506,6 +506,291 @@ var HashMap = require('hashmap');
 	    );
 	    colMap.set('Documentation Required for LD', specialNeedsDocumentation[0]);
 	    colMap.set('Documentation Required for ADHD', specialNeedsDocumentation[1]);
+	    //Grabs any 'Special Need Services Offered'
+		const specialNeedsServices = await page.$$eval('#campuslife > .row',
+	      nodes =>
+	        nodes.map(element => {
+	        	if(element.querySelector('.col-sm-3 > h4') !== null && element.querySelector('.col-sm-3 > h4').innerText === 'Special Need Services Offered')
+	        		return{
+	        			key: element.querySelector('.col-sm-3 > h4').innerText,
+	        		 	value: element.querySelector('.col-sm-9').innerText.trim().replace(/\t*\n*/g, '').replace(/Yes/g, ': Yes\n').replace(/No/g, ': No\n')
+	        		};
+	        })    
+	    );
+		addToMap(colMap, specialNeedsServices);
+	    //Grabs any 'Registered Student Organizations', 'Number of Honor Societies', 'Number of Social Sororities', and 'Number of Religious Organizations'
+		const studentActivities = await page.$$eval('#campuslife > .row > .col-sm-9 > .row > .col-xs-6',
+	      nodes =>
+	        nodes.map(element => {
+	        	if(element.querySelector('div') !== null && element.querySelector('.number-callout') !== null)
+	        		if(element.querySelector('div').innerText === 'Registered Student Organizations' ||
+	        		   element.querySelector('div').innerText === 'Number of Honor Societies' ||
+	        		   element.querySelector('div').innerText === 'Number of Social Sororities' ||
+	        		   element.querySelector('div').innerText === 'Number of Religious Organizations')
+		        		return{
+		        			key: element.querySelector('div').innerText,
+		        		 	value: element.querySelector('.number-callout').innerText
+		        		};
+	        })    
+	    );
+		addToMap(colMap, studentActivities);
+		//Grabs any '% in Sports and Clubs'
+		var percentInClubAndSports = await page.$$eval('#campuslife > .row > .col-sm-9 > .row.graph-row-container > .col-xs-12 > .row > .col-xs-6',
+	      nodes =>
+	        nodes.map(element => {
+	        	if(element.querySelector('span.bold') !== null)
+	        		return element.innerText.trim();
+	        })    
+	    );
+	    percentInClubAndSports = (percentInClubAndSports.length === 0) ? '' : percentInClubAndSports.join('\n');
+	    colMap.set('% in Sports and Clubs', percentInClubAndSports);
+	    //Grabs any 'Athletic Division', 'School Has Formal Sustainability Committee', 'Sustainability-focused degree available',
+	    //'School employs a sustainability officer', 'Public GHG inventory plan', '% food budget spent on local/organic food'
+		const divisionAndSustainability = await page.$$eval('#campuslife > .row > .col-sm-9 > .row',
+	      nodes =>
+	        nodes.map(element => {
+	        	if(element.querySelector('.col-xs-7.col-sm-7') !== null && element.querySelector('.col-xs-5.col-sm-5.text-right > .bold') !== null)
+	        	   if(element.querySelector('.col-xs-7.col-sm-7').innerText.trim() === 'Athletic Division' ||
+	        	   	  element.querySelector('.col-xs-7.col-sm-7').innerText.trim() === 'School Has Formal Sustainability Committee' ||
+	        	   	  element.querySelector('.col-xs-7.col-sm-7').innerText.trim() === 'Sustainability-focused degree available' ||
+	        	   	  element.querySelector('.col-xs-7.col-sm-7').innerText.trim() === 'School employs a sustainability officer' ||
+	        	   	  element.querySelector('.col-xs-7.col-sm-7').innerText.trim() === 'Public GHG inventory plan' ||
+	        	   	  element.querySelector('.col-xs-7.col-sm-7').innerText.trim() === '% food budget spent on local/organic food')
+		        		return{
+		        			key: element.querySelector('.col-xs-7.col-sm-7').innerText.trim(),
+		        			value: element.querySelector('.col-xs-5.col-sm-5.text-right > .bold').innerText
+		        		};
+	        })    
+	    );
+	    addToMap(colMap, divisionAndSustainability);
+	    //Grabs any "Men's Sports" and "Women's Sports"
+		const whatSports = await page.$$eval('#campuslife > .row > .col-sm-9 > .row > .col-xs-6',
+	      nodes =>
+	        nodes.map(element => {
+	        	if(element.querySelector('.bold') !== null && element.querySelector('.number-callout') !== null) 
+	        		if(element.querySelector('.bold').innerText.includes("Men's Sports"))//if the column is Men's Sports
+		        		return{//value will only contain sport names and '\n'
+		        			key: "Men's Sports",
+		        		 	value: element.innerText.trim().substring(element.querySelector('.bold').innerText.length + 28)
+		        		};
+		        	else if(element.querySelector('.bold').innerText.includes("Women's Sports"))//if the column is Women's Sports
+		        		return{//value will only contain sport names and '\n'
+		        			key: "Women's Sports",
+		        		 	value: element.innerText.trim().substring(element.querySelector('.bold').innerText.length + 28)
+		        		};
+	        })    
+	    );
+		addToMap(colMap, whatSports);
+		//Grabs any 'Student Services' offered
+		const studentServices = await page.$$eval('#campuslife > .row',
+	      nodes =>
+	        nodes.map(element => {
+	        	if(element.querySelector('.col-sm-3 > h4') !== null && element.querySelector('.col-sm-3 > h4').innerText === 'Student Services') 
+	        		return{//value will only contain sport names and '\n'
+	        			key: element.querySelector('.col-sm-3 > h4').innerText,
+	        		 	value: element.querySelector('.col-sm-9').innerText.trim()
+	        		};
+	        })    
+	    );
+	    addToMap(colMap, studentServices);
+	    //Grabs any 'Green rating' and 'AASHE STARS® rating'
+		const sustainabilityRatings = await page.$$eval('#campuslife > .row > .col-sm-9 > .row > .col-xs-6',
+	      nodes =>
+	        nodes.map(element => {
+	        	if(element.querySelector('div > a') !== null && element.querySelector('.number-callout') !== null){
+        		   	if(element.querySelector('div > a').innerText === 'Green rating') 
+		        		return{
+		        			key: element.querySelector('div > a').innerText,
+		        		 	value: element.querySelector('.number-callout').innerText.trim()
+		        		};
+	        	}
+		       	else if(element.querySelector('.number-callout') !== null && element.querySelector('.aashe-stars-silver') !== null){
+		       		if(element.querySelector('.number-callout').innerText === 'AASHE STARS® rating') 
+		        		return{
+		        			key: element.querySelector('.number-callout').innerText,
+		        		 	value: element.querySelector('.aashe-stars-silver').innerText
+		        		};
+       			}
+	        })    
+	    );
+	    addToMap(colMap, sustainabilityRatings);
+	    //Grabs blurb lists from page
+		const blurbLists = await page.$$eval('#campuslife > .row > .col-sm-9 > .blurb-list',
+	      nodes =>
+	        nodes.map(element => {
+	        	return element.innerText.trim().replace(/\t*\n*/g, '').replace(/Yes/g, ': Yes\n').replace(/No/g, ': No\n');
+	        })    
+	    );
+		//Finds if blurbLists contain 'Available Transportation Alternatives' and 'Other Information' and add thems to HashMap
+	    for(list of blurbLists){
+	    	if(list.substring(0, 10) === "Bike Share")
+	    		colMap.set('Available Transportation Alternatives', list);
+	    	else if(list.substring(0, 28) === "Campus-wide Internet Network")
+	    		colMap.set('Other Information', list);
+	    }
+	    //Garbs any 'Campus Security Report'
+		const campusSecurityReport = await page.$$eval('#campuslife > .row > .col-sm-9',
+	      nodes =>
+	        nodes.map(element => {
+	        	if(element.querySelector('a') !== null && element.querySelector('a').innerText === 'Campus Security Report'){
+	        		return{ 
+	        			key: element.querySelector('a').innerText,
+	        			value: element.querySelector('a').getAttribute('href') + '\n' + element.innerText.trim().replace('Campus Security Report', '')
+        			}
+	        	}
+	        })    
+	    );
+	    addToMap(colMap, campusSecurityReport)
+	    //End of Campus Life tab; start of Careers tab
+	    //Grabs any 'Starting Median Salary (Up to Bachelor's degree completed, only)', 'Mid-Career Median Salary (Up to Bachelor's degree completed, only)',
+	    //'Starting Median Salary (At least Bachelor's degree)', 'Mid-Career Median Salary (At least Bachelor's degree)',
+	    //'Percent High Job Meaning', and 'Percent STEM'. Might grab other stuff as well
+		const ROIandOutcomes = await page.$$eval('#careers > .row > .col-sm-9 > .row',
+	      nodes =>
+	        nodes.map(element => {
+	        	if(element.querySelector('.col-xs-7.col-sm-7') !== null && element.querySelector('.col-xs-5.col-sm-5.text-right > .bold') !== null)
+	        		return{ 
+	        			key: element.querySelector('.col-xs-7.col-sm-7').innerText.trim(),
+	        			value: element.querySelector('.col-xs-5.col-sm-5.text-right > .bold').innerText
+        			}
+        		else if(element.querySelector('.col-sm-6 > div > a') !== null && element.querySelector('.col-sm-6 > .number-callout') !== null &&
+        			    element.querySelector('.col-sm-6 > div > a').innerText === 'Return on Investment (ROI) rating')
+        			return{
+        				key: element.querySelector('.col-sm-6 > div > a').innerText,
+        				value: element.querySelector('.col-sm-6 > .number-callout').innerText
+        			};
+	        })    
+	    );
+	    addToMap(colMap, ROIandOutcomes);
+	    //Grabs any blurb from 'Students Say' Assuming Careers tab only has one blurb
+		const studentSays = await page.$$eval('#careers > .row > .col-sm-9 > .blurb',
+	      nodes =>
+	        nodes.map(element => {
+	        	return{
+	        		key: 'Students Say',
+	        		value: element.innerText
+	        	}
+	        })    
+	    );
+	    addToMap(colMap, studentSays);
+		//End of Careers Tab; start of Visiting Tab
+		//Grabs any 'Campus Visits Contact'
+		const campusVisitsContact = await page.$$eval('#visiting > .row',
+	      nodes =>
+	        nodes.map(element => {
+	        	if(element.querySelector('.col-sm-3 > h4') !== null && element.querySelector('.col-sm-3 > h4').innerText === 'Campus Visits Contact')
+	        		return{ 
+	        			key: element.querySelector('.col-sm-3 > h4').innerText,
+	        			value: element.querySelector('.col-sm-9').innerText.trim().replace(/\t*\n*/g, '')
+	        			   		.replace("Address", "\nAddress: ").replace("Contact", "\nContact: ")
+	        			   		.replace("Phone", "\nPhone: ").replace("Email", "\nEmail: ")
+        			};
+	        })    
+	    );
+	    addToMap(colMap, campusVisitsContact);
+	    //Grabs any 'Experience College Life'
+		const experienceCollegeLife = await page.$$eval('#visiting > .row',
+	      nodes =>
+	        nodes.map(element => {
+	        	if(element.querySelector('.col-sm-3 > h4') !== null && element.querySelector('.col-sm-3 > h4').innerText === 'Experience College Life')
+	        		return{ 
+	        			key: element.querySelector('.col-sm-3 > h4').innerText,
+	        			value: element.querySelector('.col-sm-9').innerText.trim().replace(/\t*\n*/g, '')
+	        			   		.replace("Most Popular Places On Campus", "Most Popular Places On Campus:\n")
+	        			   		.replace("Most Popular Places Off Campus", "\n\nMost Popular Places Off Campus:\n")
+        			};
+	        })    
+	    );	    
+		addToMap(colMap, experienceCollegeLife);
+		//Grabs any 'Campus Tours'
+		const campusTours = await page.$$eval('#visiting > .row',
+	      nodes =>
+	        nodes.map(element => {
+	        	if(element.querySelector('.col-sm-3 > h4') !== null && element.querySelector('.col-sm-3 > h4').innerText === 'Campus Tours')
+	        		return{ 
+	        			key: element.querySelector('.col-sm-3 > h4').innerText,
+	        			value: element.querySelector('.col-sm-9').innerText.trim().replace(/\t*\n*/g, '')
+	        			   		.replace("Campus Visiting Center", "Campus Visiting Center:\n")
+	        			   		.replace("Campus Tours", "\n\nCampus Tours:\n")
+        			};
+	        })    
+	    );
+		addToMap(colMap, campusTours);
+		//Grabs any 'On Campus Interview'
+		const onCampusInterview = await page.$$eval('#visiting > .row',
+	      nodes =>
+	        nodes.map(element => {
+	        	if(element.querySelector('.col-sm-3 > h4') !== null && element.querySelector('.col-sm-3 > h4').innerText === 'On Campus Interview')
+	        		return{ 
+	        			key: element.querySelector('.col-sm-3 > h4').innerText,
+	        			value: element.querySelector('.col-sm-9').innerText.trim().replace(/\t*\n*/g, '')
+	        			   		.replace("Campus Interviews", "Campus Interviews: ")
+	        			   		.replace("Information Sessions", "\nInformation Sessions: ")
+	        			   		.replace("Times", "\nTimes: ")
+        			};
+	        })    
+	    );
+	    addToMap(colMap, campusTours);
+	    //Grabs any 'Faculty and Coach Visits'
+		const facultyAndCoachVisits = await page.$$eval('#visiting > .row',
+	      nodes =>
+	        nodes.map(element => {
+	        	if(element.querySelector('.col-sm-3 > h4') !== null && element.querySelector('.col-sm-3 > h4').innerText === 'Faculty and Coach Visits')
+	        		return{ 
+	        			key: element.querySelector('.col-sm-3 > h4').innerText,
+	        			value: element.querySelector('.col-sm-9').innerText.trim().replace(/\t*\n*/g, '')
+	        			   		.replace("Dates/Times Available", "Dates/Times Available: ")
+	        			   		.replace("Arrangements", "\nArrangements: ")
+	        			   		.replace("Contact Email Address for Visit", "\nContact Email Address for Visit: ")
+	        			   		.replace("Advance Notice", "\nAdvance Notice: ")
+        			};
+	        })    
+	    );
+	    addToMap(colMap, facultyAndCoachVisits);
+	   	//Grabs any 'Class Visits'
+		const classVisits = await page.$$eval('#visiting > .row',
+	      nodes =>
+	        nodes.map(element => {
+	        	if(element.querySelector('.col-sm-3 > h4') !== null && element.querySelector('.col-sm-3 > h4').innerText === 'Class Visits')
+	        		return{ 
+	        			key: element.querySelector('.col-sm-3 > h4').innerText,
+	        			value: element.querySelector('.col-sm-9').innerText.trim().replace(/\t*\n*/g, '')
+	        			   		.replace("Dates/Times Available", "Dates/Times Available: ")
+	        			   		.replace("Arrangements", "\nArrangements: ")
+        			};
+	        })    
+	    );
+	    addToMap(colMap, classVisits);
+	    //Grabs any 'Overnight Dorm Stays'
+		const overNightDormStays = await page.$$eval('#visiting > .row',
+	      nodes =>
+	        nodes.map(element => {
+	        	if(element.querySelector('.col-sm-3 > h4') !== null && element.querySelector('.col-sm-3 > h4').innerText === 'Overnight Dorm Stays')
+	        		return{ 
+	        			key: element.querySelector('.col-sm-3 > h4').innerText,
+	        			value: element.querySelector('.col-sm-9').innerText.trim().replace(/\t*\n*/g, '')
+	        			   		.replace("Overnight Dorm Stays", "Overnight Dorm Stays: ")
+	        			   		.replace("Limitations", "\nLimitations: ")
+	        			   		.replace("Arrangements", "\nArrangements: ")
+        			};
+	        })    
+	    );
+		addToMap(colMap, overNightDormStays);
+		//Grabs any 'Transportation'
+		const transportation = await page.$$eval('#visiting > .row > .col-sm-9 > .blurb',
+	      nodes =>
+	        nodes.map(element => {
+	        	return{
+	        		key: 'Transportation',
+	        		value: element.innerText.trim().replace(/\t*\n*/g, '')
+        			   		.replace("Types of Transportation Available to Campus", "Types of Transportation Available to Campus:\n")
+        			   		.replace("Driving Instructions to Campus", "\n\nDriving Instructions to Campus:\n")
+        			   		.replace("Local Accommodations", "\n\nLocal Accommodations:\n")
+	        	}
+	        })    
+	    );
+	    addToMap(colMap, transportation);
+	    //End of Visiting Tab
 		await newPage.close();
 		await browser.close();
 	}catch(e){
