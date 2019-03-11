@@ -1,6 +1,3 @@
-const puppeteer = require('puppeteer');
-const fs = require('fs-extra');
-var HashMap = require('hashmap');
 //Column names for the .csv
 const columnNames = ['Applicants', 'Acceptance Rate', 'Average HS GPA', 'SAT Evidence-Based Reading and Writing', 'SAT Math', 'ACT Composite', 'GPA Breakdown',
 'Superscore ACT', 'Superscore SAT', 'ACT Writing Policy', 'SAT Essay Policy', 'Deadlines', 'Academic', 'Non-Academic', 'Admissions selectivity rating', 
@@ -16,16 +13,24 @@ const columnNames = ['Applicants', 'Acceptance Rate', 'Average HS GPA', 'SAT Evi
 '% in Sports and Clubs', 'Athletic Division', 'School Has Formal Sustainability Committee', 'Sustainability-focused degree available',
 'School employs a sustainability officer', 'Public GHG inventory plan', '% food budget spent on local/organic food', "Men's Sports", "Women's Sports",
 'Student Services', 'Green rating', 'AASHE STARS® rating', 'Available Transportation Alternatives', 'Other Information', 'Campus Security Report',
-"Starting Median Salary (Up to Bachelor's degree completed, only)", "Mid-Career Median Salary (Up to Bachelor's degree completed, only)",
+"Starting Median Salary (Up to Bachelor's degree completed only)", "Mid-Career Median Salary (Up to Bachelor's degree completed only)",
 "Starting Median Salary (At least Bachelor's degree)", "Mid-Career Median Salary (At least Bachelor's degree)", 'Percent High Job Meaning', 'Percent STEM',
 'Students Say', 'Campus Visits Contact', 'Experience College Life', 'Campus Tours', 'On Campus Interview', 'Faculty and Coach Visits', 'Class Visits', 
 'Overnight Dorm Stays', 'Transportation'];
 
+const puppeteer = require('puppeteer');
+const fs = require('fs-extra');
+var HashMap = require('hashmap');
+var csvWriter = require('csv-write-stream');
+var writer = csvWriter({ headers: ['School Name'].concat(columnNames)});
+
 (async function main() {
 	try{
-		var names = await (fs.readFileSync('names.csv', 'utf8')).split('\n');
-		await fs.writeFile('out.csv', 'School Name,' + columnNames.join(',') + '\n');//Makes a new out.csv file with initial headers
-		const browser = await puppeteer.launch({ headless: false });
+		const names = await (fs.readFileSync('names.csv', 'utf8')).split('\n');
+		//if(!fs.existsSync('out.csv')){
+		writer.pipe(fs.createWriteStream('out.csv'));
+
+		const browser = await puppeteer.launch({ headless: true });
 		const page = await browser.newPage();
 		
 		for(name of names){
@@ -600,6 +605,14 @@ const columnNames = ['Applicants', 'Acceptance Rate', 'Average HS GPA', 'SAT Evi
 			const sustainabilityRatings = await page.$$eval('#campuslife > .row > .col-sm-9 > .row > .col-xs-6',
 		      nodes =>
 		        nodes.map(element => {
+			       	if(element.querySelector('.number-callout') !== null && element.querySelector('span') !== null){
+			       		if(element.querySelector('.number-callout').innerText === 'AASHE STARS® rating') 
+			        		return{
+			        			key: element.querySelector('.number-callout').innerText,
+			        		 	value: element.querySelector('span').innerText
+			        		};
+	       			}
+
 		        	if(element.querySelector('div > a') !== null && element.querySelector('.number-callout') !== null){
 	        		   	if(element.querySelector('div > a').innerText === 'Green rating') 
 			        		return{
@@ -607,13 +620,6 @@ const columnNames = ['Applicants', 'Acceptance Rate', 'Average HS GPA', 'SAT Evi
 			        		 	value: element.querySelector('.number-callout').innerText.trim()
 			        		};
 		        	}
-			       	else if(element.querySelector('.number-callout') !== null && element.querySelector('.aashe-stars-silver') !== null){
-			       		if(element.querySelector('.number-callout').innerText === 'AASHE STARS® rating') 
-			        		return{
-			        			key: element.querySelector('.number-callout').innerText,
-			        		 	value: element.querySelector('.aashe-stars-silver').innerText
-			        		};
-	       			}
 		        })    
 		    );
 		    addToMap(colMap, sustainabilityRatings);
@@ -645,7 +651,7 @@ const columnNames = ['Applicants', 'Acceptance Rate', 'Average HS GPA', 'SAT Evi
 		    );
 		    addToMap(colMap, campusSecurityReport)
 		    //End of Campus Life tab; start of Careers tab
-		    //Grabs any 'Starting Median Salary (Up to Bachelor's degree completed, only)', 'Mid-Career Median Salary (Up to Bachelor's degree completed, only)',
+		    //Grabs any 'Starting Median Salary (Up to Bachelor's degree completed only)', 'Mid-Career Median Salary (Up to Bachelor's degree completed only)',
 		    //'Starting Median Salary (At least Bachelor's degree)', 'Mid-Career Median Salary (At least Bachelor's degree)',
 		    //'Percent High Job Meaning', and 'Percent STEM'. Might grab other stuff as well
 			const ROIandOutcomes = await page.$$eval('#careers > .row > .col-sm-9 > .row',
@@ -653,7 +659,7 @@ const columnNames = ['Applicants', 'Acceptance Rate', 'Average HS GPA', 'SAT Evi
 		        nodes.map(element => {
 		        	if(element.querySelector('.col-xs-7.col-sm-7') !== null && element.querySelector('.col-xs-5.col-sm-5.text-right > .bold') !== null)
 		        		return{ 
-		        			key: element.querySelector('.col-xs-7.col-sm-7').innerText.trim(),
+		        			key: element.querySelector('.col-xs-7.col-sm-7').innerText.trim().replace(',', ''),
 		        			value: element.querySelector('.col-xs-5.col-sm-5.text-right > .bold').innerText
 	        			}
 	        		else if(element.querySelector('.col-sm-6 > div > a') !== null && element.querySelector('.col-sm-6 > .number-callout') !== null &&
@@ -793,18 +799,25 @@ const columnNames = ['Applicants', 'Acceptance Rate', 'Average HS GPA', 'SAT Evi
 		        })    
 		    );
 		    addToMap(colMap, transportation);
-		    console.log(colMap);
 		    //End of Visiting Tab
-
-		    for(var name of columnNames){
-		    	await fs.appendFile('out.csv', `"${colMap.get(name)}",`);
+		    var temp = [name];
+		    for(var e of columnNames){
+		    	await temp.push(await colMap.get(e));
 		    }
+    		writer.write(temp);
+		    /*for(var e of columnNames){
+		    	const temp = await colMap.get(e);
+		    	await console.log(temp);
+		    	await fs.appendFile('out.csv', `"${temp}",`);
+		    }*/
 			await newPage.close();
-			await fs.appendFile('out.csv', `\n`);
+			//await fs.appendFile('out.csv', `\n`);
 		}
 		await browser.close();
 	}catch(e){
 		console.log('our error', e);
+	}finally{
+		writer.end();
 	}
 })();
 //Adds all the key value pairs of obj into the passed in hashmap and return it. Ignores properties that are null in obj
