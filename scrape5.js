@@ -163,6 +163,7 @@ var writer = csvWriter({ headers: ['School Name'].concat(columnNames)});
 			colMap.set('Admissions selectivity rating', selectivityRating);
 			//End of Admissions tab; start of Academics tab
 			//Grabs any student:faculty ratio, total faculty, and num with terminal degree from Faculty and Class information row
+			//Replace ':' with ' to ' to stop .csv from automatically converting ratio to time
 			const facultyStudentInfo1 = await page.$$eval('#academics > .row > .col-sm-9 > .row > .col-sm-4',
 		      nodes =>
 		        nodes.map(element => {
@@ -172,7 +173,7 @@ var writer = csvWriter({ headers: ['School Name'].concat(columnNames)});
 		        		   element.querySelector('div').innerText === "with Terminal Degree")
 			        		return{ 
 			        			key: element.querySelector('div').innerText,
-			        			value: element.querySelector('.number-callout').innerText
+			        			value: element.querySelector('.number-callout').innerText.replace(':', ' to ')
 			        		};
 		        	}
 		        })    
@@ -189,6 +190,7 @@ var writer = csvWriter({ headers: ['School Name'].concat(columnNames)});
 		    facultyStudentInfo2 = (facultyStudentInfo2.length === 0) ? '' : facultyStudentInfo2.join('\n');
 		    colMap.set('College Makeup', facultyStudentInfo2);
 		    //Grabs any 'Most frequent class size', 'Most frequent lab / sub section size', 'Professors interesting rating', or 'Professors accessible rating'
+			//Replaced '-' with 'to' to stop csv from converting text to date
 			const facultyStudentInfo3 = await page.$$eval('#academics > .row > .col-sm-9 > .row > .col-xs-6',
 		      nodes =>
 		        nodes.map(element => {
@@ -197,7 +199,7 @@ var writer = csvWriter({ headers: ['School Name'].concat(columnNames)});
 		        		   element.querySelector('div').innerText === "Most frequent lab / sub section size")
 			        		return{ 
 			        			key: element.querySelector('div').innerText,
-			        			value: element.querySelector('.number-callout').innerText
+			        			value: element.querySelector('.number-callout').innerText.replace('-', 'to')
 			        		};
 			        	else if(element.querySelector('div > a') !== null && element.querySelector('.number-callout') !== null){
 							if(element.querySelector('div > a').innerText === 'Professors interesting rating' ||
@@ -426,7 +428,7 @@ var writer = csvWriter({ headers: ['School Name'].concat(columnNames)});
 		    );
 		    addToMap(colMap, studentBodyProfile);
 		    //Grabs any 'Race Demographics'
-			var raceDemographics = await page.$$eval('#studentbody > .row > .col-sm-9 > .row.graph-row-container',
+			var raceDemographics = await page.$$eval('#studentbody > .row > .col-sm-9 > div > .row.graph-row-container',
 		      nodes =>
 		        nodes.map(element => {
 	        		if(element.querySelector('.col-xs-2.col-sm-2.bold') !== null && element.querySelector('.col-xs-5.col-sm-3') !== null)
@@ -805,19 +807,13 @@ var writer = csvWriter({ headers: ['School Name'].concat(columnNames)});
 		    	await temp.push(await colMap.get(e));
 		    }
     		writer.write(temp);
-		    /*for(var e of columnNames){
-		    	const temp = await colMap.get(e);
-		    	await console.log(temp);
-		    	await fs.appendFile('out.csv', `"${temp}",`);
-		    }*/
 			await newPage.close();
-			//await fs.appendFile('out.csv', `\n`);
 		}
 		await browser.close();
 	}catch(e){
 		console.log('our error', e);
 	}finally{
-		writer.end();
+		writer.end();//Closes the write stream for out.csv
 	}
 })();
 //Adds all the key value pairs of obj into the passed in hashmap and return it. Ignores properties that are null in obj
