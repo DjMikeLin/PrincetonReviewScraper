@@ -30,12 +30,13 @@ var writer = csvWriter({ headers: ['School Name'].concat(columnNames)});
 		//if(!fs.existsSync('out.csv')){
 		writer.pipe(fs.createWriteStream('out.csv'));
 
-		const browser = await puppeteer.launch({ headless: true });
+		const browser = await puppeteer.launch({ headless: false });
 		const page = await browser.newPage();
 		
 		for(name of names){
 			await page.goto('https://www.princetonreview.com/college-education');
 			await page.type('#search', name);
+            await page.click('button[type="submit"]');
 
 		  	const newPage = await browser.newPage();
 		  	await newPage.goto(page.url());

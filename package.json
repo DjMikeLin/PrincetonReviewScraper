@@ -1,0 +1,26 @@
+{
+  "name": "PrincetonReviewScraper",
+  "version": "1.0.0",
+  "description": "A scraper to scrape data from different schools on Princeton Review",
+  "main": "scrape4.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DjMikeLin/PrincetonReviewScraper.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DjMikeLin/PrincetonReviewScraper/issues"
+  },
+  "homepage": "https://github.com/DjMikeLin/PrincetonReviewScraper#readme",
+  "dependencies": {
+    "csv-write-stream": "^2.0.0",
+    "fs-extra": "^8.1.0",
+    "hashmap": "^2.4.0",
+    "puppeteer": "^2.1.1"
+  }
+}
