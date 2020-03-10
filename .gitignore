@@ -64,8 +64,4 @@ typings/
 .next
 
 package-lock.json
-readFile.js
-scrape.js
-scrape2.js
-scrape3.js
 missingSchools.csv

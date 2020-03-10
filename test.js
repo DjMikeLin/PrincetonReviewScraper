@@ -1,7 +1,6 @@
-const execFile = require('child_process').execFile;
+const child_process = require('child_process');
 const fs = require('fs-extra');
 const csvWriter = require('csv-write-stream');
-const scraper = require('./scrape');
 
 //Column headers for the .csv
 const columnNames = ['Applicants', 'Acceptance Rate', 'Average HS GPA', 'SAT Evidence-Based Reading and Writing', 'SAT Math', 'ACT Composite', 'GPA Breakdown',
@@ -26,17 +25,17 @@ const columnNames = ['Applicants', 'Acceptance Rate', 'Average HS GPA', 'SAT Evi
 const writer = csvWriter({ headers: ['School Name'].concat(columnNames)});
 
 try{
-	const names = fs.readFileSync('names.csv', 'utf8').split('\n');
-    console.log(names) 
-    /*for(name of names){
-        execFile('node', ['scrape.js', name], (error, stdout, stderr) => {
+	//const names = fs.readFileSync('names.csv', 'utf8').split('\n');
+    const names = ['Princeton University', 'Harvard College'];
+    for(name of names){
+        child_process.execFile('node', ['scrape.js', name], (error, stdout, stderr) => {
             if(error){
                 console.error('stderr', stderr);
                 throw error;
             }
             console.log('stdout', stdout);
         });
-    }*/
+    }
 }
 catch(e){
     console.log('our error', e);
