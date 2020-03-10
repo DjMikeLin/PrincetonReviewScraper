@@ -28,12 +28,16 @@ try{
 	//const names = fs.readFileSync('names.csv', 'utf8').split('\n');
     const names = ['Princeton University', 'Harvard College'];
     for(name of names){
-        child_process.execFile('node', ['scrape.js', name], (error, stdout, stderr) => {
+        let temp = child_process.execFile('node', ['scrape.js', name], (error, stdout, stderr) => {
             if(error){
                 console.error('stderr', stderr);
                 throw error;
             }
-            console.log('stdout', stdout);
+        });
+
+        temp.stdout.on('data', data => {
+            console.log(typeof(data));
+            //console.log(data.toString());
         });
     }
 }
