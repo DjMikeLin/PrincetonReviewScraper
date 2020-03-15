@@ -774,13 +774,11 @@ let HashMap = require('hashmap');
         addToMap(colMap, transportation);
         //End of Visiting Tab
         
-        let row = [name];
-        colMap.forEach((value, key) => {
-            row.push(colMap.get(key));
-        }); 
+        /*for(let n of columnNames){
+            await row.push(await colMap.get(e));
+        }*/
         //writer.write(temp);
 		await browser.close();
-        console.log(row);
 })();
 //Adds all the key value pairs of obj into the passed in hashmap and return it. Ignores properties that are null in obj
 let addToMap = (map, obj) => {

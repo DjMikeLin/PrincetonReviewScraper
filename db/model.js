@@ -1,9 +1,7 @@
-const child_process = require('child_process');
-const fs = require('fs-extra');
-const csvWriter = require('csv-write-stream');
+let mongoose = require('mongoose');
+let Schema = mongoose.Schema;
 
-//Column headers for the .csv
-const columnNames = ['Applicants', 'Acceptance Rate', 'Average HS GPA', 'SAT Evidence-Based Reading and Writing', 'SAT Math', 'ACT Composite', 'GPA Breakdown',
+['Applicants', 'Acceptance Rate', 'Average HS GPA', 'SAT Evidence-Based Reading and Writing', 'SAT Math', 'ACT Composite', 'GPA Breakdown',
 'Superscore ACT', 'Superscore SAT', 'ACT Writing Policy', 'SAT Essay Policy', 'Deadlines', 'Academic', 'Non-Academic', 'Admissions selectivity rating', 
 'Student/Faculty', 'Total Faculty', 'with Terminal Degree', 'College Makeup', 'Most frequent class size', 'Most frequent lab / sub section size', 
 'Professors interesting rating', 'Professors accessible rating', 'Graduation Rates', 'Majors', 'Degrees', 'On-Campus Job Interviews Available', 
@@ -20,30 +18,12 @@ const columnNames = ['Applicants', 'Acceptance Rate', 'Average HS GPA', 'SAT Evi
 "Starting Median Salary (Up to Bachelor's degree completed only)", "Mid-Career Median Salary (Up to Bachelor's degree completed only)",
 "Starting Median Salary (At least Bachelor's degree)", "Mid-Career Median Salary (At least Bachelor's degree)", 'Percent High Job Meaning', 'Percent STEM',
 'Students Say', 'Campus Visits Contact', 'Experience College Life', 'Campus Tours', 'On Campus Interview', 'Faculty and Coach Visits', 'Class Visits', 
-'Overnight Dorm Stays', 'Transportation'];
+'Overnight Dorm Stays', 'Transportation']
 
-const writer = csvWriter({ headers: ['School Name'].concat(columnNames)});
+let schoolSchema = Schema({
 
-try{
-	//const names = fs.readFileSync('names.csv', 'utf8').split('\n');
-    const names = ['Princeton University', 'Harvard College'];
-    for(name of names){
-        let temp = child_process.execFile('node', ['scrape.js', name], (error, stdout, stderr) => {
-            if(error){
-                console.error('stderr', stderr);
-                throw error;
-            }
-        });
+});
 
-        temp.stdout.on('data', data => {
-            console.log(typeof(data));
-            //console.log(data.toString());
-        });
-    }
-}
-catch(e){
-    console.log('our error', e);
-}
-finally{
-    writer.end();//Closes the write stream for csv
-}
+let SchoolCollection = mongoose.model("schools", schoolSchema);
+
+module.exports = SchoolCollection;

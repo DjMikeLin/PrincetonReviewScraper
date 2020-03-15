@@ -21,6 +21,8 @@
     "csv-write-stream": "^2.0.0",
     "fs-extra": "^8.1.0",
     "hashmap": "^2.4.0",
+    "mongo": "^0.1.0",
+    "mongoose": "^5.9.4",
     "puppeteer": "^2.1.1"
   }
 }
