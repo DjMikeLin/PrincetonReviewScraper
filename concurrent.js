@@ -25,28 +25,24 @@ const columnNames = ['Applicants', 'Acceptance Rate', 'Average HS GPA', 'SAT Evi
 const writer = csvWriter({ headers: ['School Name'].concat(columnNames)});
 
 try{
-	const names = fs.readFileSync('names.csv', 'utf8').split('\n').slice(0,20);
-    console.log(names.length);
-    //const names = ['Princeton University', 'Harvard College'];
+	const names = fs.readFileSync('names.csv', 'utf8').split('\n');
+
     let count = 0;
-    let keepGoing = true;
+    let arr = ['scrape.js'];
     for(name of names){
-        while(keepGoing){
-            count++;
-            await child_process.execFile('node', ['scrape.js', name], (error, stderr) => {
+        arr.push(name); 
+        count++;
+
+        if(count === Math.floor(names.length / 10)){
+            child_process.execFile('node', arr, (error, stderr) => {
                 if(error){
                     console.error('stderr', stderr);
                     throw error;
                 }
-                count--;
-            });
-            if(count === 10){
-                keepGoing = false;
-                console.log(count); 
-            }
+            })
+            count = 0;
+            arr = new Array('scrape.js');
         }
-        count = 0;
-        keepGoing = true;
     }
 }
 catch(e){

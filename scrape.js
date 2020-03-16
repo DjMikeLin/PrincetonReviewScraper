@@ -2,12 +2,15 @@ const puppeteer = require('puppeteer');
 let HashMap = require('hashmap');
 
 (async () => {
-    let name = process.argv[2];
-		const browser = await puppeteer.launch({ headless: false });
-		const page = (await browser.pages())[0];
+    const browser = await puppeteer.launch({ headless: false });
+    const page = (await browser.pages())[0];
+    await page.goto('https://www.princetonreview.com/college-education');
+    
+    for(let i = 2; i < process.argv.length; i++){
+        if(process.argv[i] === undefined)
+            break;
 		
-        await page.goto('https://www.princetonreview.com/college-education');
-        await page.type('#search', name);
+        await page.type('#search', process.argv[i]);
         await page.click('button[type="submit"]');
 
         await page.waitForSelector('.row');
@@ -772,13 +775,17 @@ let HashMap = require('hashmap');
             })    
         );
         addToMap(colMap, transportation);
+        
+        await page.goto('https://www.princetonreview.com/college-education');
         //End of Visiting Tab
         
         /*for(let n of columnNames){
             await row.push(await colMap.get(e));
         }*/
         //writer.write(temp);
-		await browser.close();
+    }
+
+    await browser.close();
 })();
 //Adds all the key value pairs of obj into the passed in hashmap and return it. Ignores properties that are null in obj
 let addToMap = (map, obj) => {
