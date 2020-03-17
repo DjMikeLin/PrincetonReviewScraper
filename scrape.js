@@ -775,8 +775,9 @@ let HashMap = require('hashmap');
             })    
         );
         addToMap(colMap, transportation);
-        
+         
         await page.goto('https://www.princetonreview.com/college-education');
+        console.log(colMap)
         //End of Visiting Tab
         
         /*for(let n of columnNames){
@@ -784,14 +785,13 @@ let HashMap = require('hashmap');
         }*/
         //writer.write(temp);
     }
-
     await browser.close();
 })();
 //Adds all the key value pairs of obj into the passed in hashmap and return it. Ignores properties that are null in obj
 let addToMap = (map, obj) => {
     for(property of obj){
     	if(property != null)
-			map.set(property.key, property.value);
+			map.set(property.key.split(' ').join('_').split('-').join('_'), property.value);
 	}
 	return map;
 };
